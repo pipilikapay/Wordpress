@@ -110,41 +110,34 @@ class Custom_pipilikapay_Gateway extends WC_Payment_Gateway {
             $order_total = $order_total*$exchange_rate;
         }
 
-
         $metadata = array(
             'customerID' => $email,
             'orderID' => $order->get_id()
         );
-        
-        $requestbody = array(
+
+        $data = array(
             'apiKey' => $apiKey,
             'secretkey' => $secretKey,
+            'fullname' => $full_name,
+            'email' => $email,
             'amount' => $order_total,
-            'CustomerName' => $full_name,
-            'CustomerEmail' => $email,
             'successurl' => $callbackURL,
-            'webhookUrl' => $webhookURL,
             'cancelurl' => $cancelURL,
+            'webhookUrl' => $webhookURL,
             'metadata' => json_encode($metadata)
         );
-        $url = curl_init("$baseURL/payment/api/create_payment");                     
-        $requestbodyJson = json_encode($requestbody);
-    
-        $header = array(
-            'Content-Type:application/json'
-        );
-    
-        curl_setopt($url, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($url, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($url, CURLOPT_POSTFIELDS, $requestbodyJson);
-        curl_setopt($url, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        $resultdata = curl_exec($url);
-        curl_close($url);
-    
-        $resultdata =  json_decode($resultdata, true);
 
+        $ch = curl_init("$baseURL/payment/api/create_payment");
+
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+
+        curl_close($ch);
+
+        $resultdata = json_decode($response, true);
 
         return array(
             'result'   => 'success',
